@@ -445,9 +445,7 @@
       .replace(/\n/g, '\\n');
   }
 
-  let lastICSUrl = null;
-
-  function buildICSBlobUrl(ev) {
+  function buildICSDataUrl(ev) {
     const dtstamp = formatICSDateUTC(new Date());
     const uid = `${Date.now()}-${Math.random().toString(36).slice(2)}@calendar-card`;
     let dtStartLine, dtEndLine;
@@ -482,10 +480,7 @@
     if (descParts.length) lines.push(`DESCRIPTION:${escapeICS(descParts.join('\n'))}`);
     lines.push('END:VEVENT', 'END:VCALENDAR');
 
-    if (lastICSUrl) URL.revokeObjectURL(lastICSUrl);
-    const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
-    lastICSUrl = URL.createObjectURL(blob);
-    return lastICSUrl;
+    return 'data:text/calendar;charset=utf-8,' + encodeURIComponent(lines.join('\r\n'));
   }
 
   form.addEventListener('submit', (e) => {
@@ -530,7 +525,7 @@
     descEl.style.display = desc ? 'block' : 'none';
 
     gcalBtn.href = buildGoogleCalendarUrl(currentEvent);
-    appleCalBtn.href = buildICSBlobUrl(currentEvent);
+    appleCalBtn.href = buildICSDataUrl(currentEvent);
     cardSection.style.display = 'block';
     cardSection.scrollIntoView({ behavior: 'smooth' });
   });
