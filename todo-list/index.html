@@ -451,71 +451,17 @@
     return `${base}&text=${text}&dates=${dates}&details=${details}`;
   }
 
-  function formatICSDateUTC(d) {
-    return `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`;
-  }
+  const ICS_API_BASE = 'https://calendar-ics-api.vercel.app/api/ics';
 
-  function formatICSDateOnly(d) {
-    return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
-  }
-
-  function escapeICS(str) {
-    return String(str || '')
-      .replace(/\\/g, '\\\\')
-      .replace(/;/g, '\\;')
-      .replace(/,/g, '\\,')
-      .replace(/\n/g, '\\n');
-  }
-
-  let lastICSUrl = null;
-
-  function buildICSBlobUrl(td) {
-    const dtstamp = formatICSDateUTC(new Date());
-    const uid = `${Date.now()}-${Math.random().toString(36).slice(2)}@todo-list`;
-    let dtStartLine, dtEndLine;
-    if (td.time) {
-      const start = new Date(`${td.date}T${td.time}:00`);
-      const end = new Date(start.getTime() + 60 * 60 * 1000);
-      dtStartLine = `DTSTART:${formatICSDateUTC(start)}`;
-      dtEndLine = `DTEND:${formatICSDateUTC(end)}`;
-    } else {
-      const start = new Date(`${td.date}T00:00:00`);
-      const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
-      dtStartLine = `DTSTART;VALUE=DATE:${formatICSDateOnly(start)}`;
-      dtEndLine = `DTEND;VALUE=DATE:${formatICSDateOnly(end)}`;
-    }
-    const descParts = [];
-    if (td.desc) descParts.push(td.desc);
-    if (td.link) descParts.push(td.link);
-
-    const lines = [
-      'BEGIN:VCALENDAR',
-      'VERSION:2.0',
-      'PRODID:-//todo-list//jasmine//TW',
-      'CALSCALE:GREGORIAN',
-      'BEGIN:VEVENT',
-      `UID:${uid}`,
-      `DTSTAMP:${dtstamp}`,
-      dtStartLine,
-      dtEndLine,
-      `SUMMARY:${escapeICS(td.title)}`
-    ];
-    if (descParts.length) lines.push(`DESCRIPTION:${escapeICS(descParts.join('\n'))}`);
-    if (td.reminderMinutes) {
-      lines.push(
-        'BEGIN:VALARM',
-        'ACTION:DISPLAY',
-        `DESCRIPTION:${escapeICS(td.title)}`,
-        `TRIGGER:-PT${td.reminderMinutes}M`,
-        'END:VALARM'
-      );
-    }
-    lines.push('END:VEVENT', 'END:VCALENDAR');
-
-    if (lastICSUrl) URL.revokeObjectURL(lastICSUrl);
-    const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
-    lastICSUrl = URL.createObjectURL(blob);
-    return lastICSUrl;
+  function buildICSUrl(td) {
+    const params = new URLSearchParams();
+    params.set('title', td.title);
+    params.set('date', td.date);
+    if (td.time) params.set('time', td.time);
+    if (td.desc) params.set('desc', td.desc);
+    if (td.link) params.set('link', td.link);
+    if (td.reminderMinutes) params.set('reminder', td.reminderMinutes);
+    return `${ICS_API_BASE}?${params.toString()}`;
   }
 
   form.addEventListener('submit', (e) => {
@@ -560,13 +506,13 @@
     descEl.style.display = desc ? 'block' : 'none';
 
     gcalBtn.href = buildGoogleCalendarUrl(currentTodo);
-    appleCalBtn.href = buildICSBlobUrl(currentTodo);
+    appleCalBtn.href = buildICSUrl(currentTodo);
     cardSection.style.display = 'block';
     cardSection.scrollIntoView({ behavior: 'smooth' });
   });
 
   // ---- LINE 分享 ----
-  function buildFlexMessage(td, gcalUrl) {
+  function buildFlexMessage(td, gcalUrl, icsUrl) {
     const bodyContents = [
       { type: 'text', text: 'TO DO', color: '#c9a769', size: 'xs', weight: 'bold', align: 'center' },
       { type: 'text', text: td.title, color: '#f3efe3', size: 'lg', weight: 'bold', wrap: true, margin: 'md', align: 'center' },
@@ -633,6 +579,12 @@
               style: 'primary',
               color: '#6f9a92',
               action: { type: 'uri', label: '加到 Google 行事曆', uri: gcalUrl }
+            },
+            {
+              type: 'button',
+              style: 'secondary',
+              color: '#c9a769',
+              action: { type: 'uri', label: '加到 Apple 行事曆', uri: icsUrl }
             }
           ]
         }
@@ -656,7 +608,8 @@
     }
     try {
       const gcalUrl = buildGoogleCalendarUrl(currentTodo);
-      const msg = buildFlexMessage(currentTodo, gcalUrl);
+      const icsUrl = buildICSUrl(currentTodo);
+      const msg = buildFlexMessage(currentTodo, gcalUrl, icsUrl);
       const result = await liff.shareTargetPicker([msg]);
       if (result) {
         liffHint.textContent = '已送出分享！';
