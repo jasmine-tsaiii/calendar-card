@@ -429,58 +429,17 @@
     return `${base}&text=${text}&dates=${dates}&location=${loc}&details=${details}`;
   }
 
-  function formatICSDateUTC(d) {
-    return `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`;
-  }
+  const ICS_API_BASE = 'https://calendar-ics-api.vercel.app/api/ics';
 
-  function formatICSDateOnly(d) {
-    return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
-  }
-
-  function escapeICS(str) {
-    return String(str || '')
-      .replace(/\\/g, '\\\\')
-      .replace(/;/g, '\\;')
-      .replace(/,/g, '\\,')
-      .replace(/\n/g, '\\n');
-  }
-
-  function buildICSDataUrl(ev) {
-    const dtstamp = formatICSDateUTC(new Date());
-    const uid = `${Date.now()}-${Math.random().toString(36).slice(2)}@calendar-card`;
-    let dtStartLine, dtEndLine;
-    if (ev.time) {
-      const start = new Date(`${ev.date}T${ev.time}:00`);
-      const end = new Date(start.getTime() + 60 * 60 * 1000); // 預設 1 小時
-      dtStartLine = `DTSTART:${formatICSDateUTC(start)}`;
-      dtEndLine = `DTEND:${formatICSDateUTC(end)}`;
-    } else {
-      const start = new Date(`${ev.date}T00:00:00`);
-      const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
-      dtStartLine = `DTSTART;VALUE=DATE:${formatICSDateOnly(start)}`;
-      dtEndLine = `DTEND;VALUE=DATE:${formatICSDateOnly(end)}`;
-    }
-    const descParts = [];
-    if (ev.desc) descParts.push(ev.desc);
-    if (ev.link) descParts.push(ev.link);
-
-    const lines = [
-      'BEGIN:VCALENDAR',
-      'VERSION:2.0',
-      'PRODID:-//calendar-card//jasmine//TW',
-      'CALSCALE:GREGORIAN',
-      'BEGIN:VEVENT',
-      `UID:${uid}`,
-      `DTSTAMP:${dtstamp}`,
-      dtStartLine,
-      dtEndLine,
-      `SUMMARY:${escapeICS(ev.title)}`
-    ];
-    if (ev.location) lines.push(`LOCATION:${escapeICS(ev.location)}`);
-    if (descParts.length) lines.push(`DESCRIPTION:${escapeICS(descParts.join('\n'))}`);
-    lines.push('END:VEVENT', 'END:VCALENDAR');
-
-    return 'data:text/calendar;charset=utf-8,' + encodeURIComponent(lines.join('\r\n'));
+  function buildICSUrl(ev) {
+    const params = new URLSearchParams();
+    params.set('title', ev.title);
+    params.set('date', ev.date);
+    if (ev.time) params.set('time', ev.time);
+    if (ev.location) params.set('location', ev.location);
+    if (ev.desc) params.set('desc', ev.desc);
+    if (ev.link) params.set('link', ev.link);
+    return `${ICS_API_BASE}?${params.toString()}`;
   }
 
   form.addEventListener('submit', (e) => {
@@ -525,7 +484,7 @@
     descEl.style.display = desc ? 'block' : 'none';
 
     gcalBtn.href = buildGoogleCalendarUrl(currentEvent);
-    appleCalBtn.href = buildICSDataUrl(currentEvent);
+    appleCalBtn.href = buildICSUrl(currentEvent);
     cardSection.style.display = 'block';
     cardSection.scrollIntoView({ behavior: 'smooth' });
   });
