@@ -490,7 +490,7 @@
   });
 
   // ---- LINE 分享 ----
-  function buildFlexMessage(ev, gcalUrl) {
+  function buildFlexMessage(ev, gcalUrl, icsUrl) {
     const bodyContents = [
       { type: 'text', text: 'EVENT', color: '#c9a769', size: 'xs', weight: 'bold', align: 'center' },
       { type: 'text', text: ev.title, color: '#f3efe3', size: 'lg', weight: 'bold', wrap: true, margin: 'md', align: 'center' },
@@ -557,6 +557,12 @@
               style: 'primary',
               color: '#6f9a92',
               action: { type: 'uri', label: '加到 Google 行事曆', uri: gcalUrl }
+            },
+            {
+              type: 'button',
+              style: 'secondary',
+              color: '#c9a769',
+              action: { type: 'uri', label: '加到 Apple 行事曆', uri: icsUrl }
             }
           ]
         }
@@ -580,7 +586,8 @@
     }
     try {
       const gcalUrl = buildGoogleCalendarUrl(currentEvent);
-      const msg = buildFlexMessage(currentEvent, gcalUrl);
+      const icsUrl = buildICSUrl(currentEvent);
+      const msg = buildFlexMessage(currentEvent, gcalUrl, icsUrl);
       const result = await liff.shareTargetPicker([msg]);
       if (result) {
         liffHint.textContent = '已送出分享！';
