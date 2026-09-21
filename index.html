@@ -561,13 +561,6 @@
       liffHint.textContent = '尚未完成上線設定，分享功能還不能用（先把網頁架到真的網址，並更新 LIFF 的 Endpoint URL）';
       return;
     }
-    if (!liff.isApiAvailable('shareTargetPicker')) {
-      const os = liff.getOS ? liff.getOS() : '未知';
-      const ver = liff.getLineVersion ? liff.getLineVersion() : '未知';
-      const inClient = liff.isInClient ? liff.isInClient() : '未知';
-      liffHint.textContent = `目前這個環境不支援分享功能（系統：${os}／LINE版本：${ver}／在LINE內：${inClient}）`;
-      return;
-    }
     try {
       const gcalUrl = buildGoogleCalendarUrl(currentEvent);
       const msg = buildFlexMessage(currentEvent, gcalUrl);
@@ -578,7 +571,9 @@
         liffHint.textContent = '已取消分享';
       }
     } catch (err) {
-      liffHint.textContent = '分享失敗，請稍後再試';
+      const os = liff.getOS ? liff.getOS() : '未知';
+      const ver = liff.getLineVersion ? liff.getLineVersion() : '未知';
+      liffHint.textContent = `分享失敗：${err && err.message ? err.message : err}（系統：${os}／LINE版本：${ver}）`;
       console.error(err);
     }
   });
