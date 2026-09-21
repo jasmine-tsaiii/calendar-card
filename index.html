@@ -260,6 +260,7 @@
     font-family: "Noto Sans TC", sans-serif;
   }
   a.gcal { color: var(--teal); border-color: var(--teal); }
+  a.applecal { color: var(--gold); border-color: var(--gold); }
   button.line-share { color: #7cc98f; border-color: #4f7a5a; }
   .hint {
     text-align: center;
@@ -338,6 +339,7 @@
 
     <div class="actions">
       <a id="gcalBtn" class="action-btn gcal" href="#" target="_blank" rel="noopener">加到 Google 行事曆</a>
+      <a id="appleCalBtn" class="action-btn applecal" href="#">加到 Apple 行事曆</a>
       <button id="lineShareBtn" class="action-btn line-share" type="button">分享到 LINE</button>
     </div>
     <p class="hint" id="liffHint"></p>
@@ -385,6 +387,7 @@
   const form = document.getElementById('eventForm');
   const cardSection = document.getElementById('cardSection');
   const gcalBtn = document.getElementById('gcalBtn');
+  const appleCalBtn = document.getElementById('appleCalBtn');
   const lineShareBtn = document.getElementById('lineShareBtn');
   const liffHint = document.getElementById('liffHint');
 
@@ -424,6 +427,60 @@
       dates = `${fmtDay(start)}/${fmtDay(end)}`;
     }
     return `${base}&text=${text}&dates=${dates}&location=${loc}&details=${details}`;
+  }
+
+  function formatICSDateUTC(d) {
+    return `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`;
+  }
+
+  function formatICSDateOnly(d) {
+    return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
+  }
+
+  function escapeICS(str) {
+    return String(str || '')
+      .replace(/\\/g, '\\\\')
+      .replace(/;/g, '\\;')
+      .replace(/,/g, '\\,')
+      .replace(/\n/g, '\\n');
+  }
+
+  function buildICSDataUrl(ev) {
+    const dtstamp = formatICSDateUTC(new Date());
+    const uid = `${Date.now()}-${Math.random().toString(36).slice(2)}@calendar-card`;
+    let dtStartLine, dtEndLine;
+    if (ev.time) {
+      const start = new Date(`${ev.date}T${ev.time}:00`);
+      const end = new Date(start.getTime() + 60 * 60 * 1000); // 預設 1 小時
+      dtStartLine = `DTSTART:${formatICSDateUTC(start)}`;
+      dtEndLine = `DTEND:${formatICSDateUTC(end)}`;
+    } else {
+      const start = new Date(`${ev.date}T00:00:00`);
+      const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+      dtStartLine = `DTSTART;VALUE=DATE:${formatICSDateOnly(start)}`;
+      dtEndLine = `DTEND;VALUE=DATE:${formatICSDateOnly(end)}`;
+    }
+    const descParts = [];
+    if (ev.desc) descParts.push(ev.desc);
+    if (ev.link) descParts.push(ev.link);
+
+    const lines = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//calendar-card//jasmine//TW',
+      'CALSCALE:GREGORIAN',
+      'BEGIN:VEVENT',
+      `UID:${uid}`,
+      `DTSTAMP:${dtstamp}`,
+      dtStartLine,
+      dtEndLine,
+      `SUMMARY:${escapeICS(ev.title)}`
+    ];
+    if (ev.location) lines.push(`LOCATION:${escapeICS(ev.location)}`);
+    if (descParts.length) lines.push(`DESCRIPTION:${escapeICS(descParts.join('\n'))}`);
+    lines.push('END:VEVENT', 'END:VCALENDAR');
+
+    return 'data:text/calendar;charset=utf-8,' + encodeURIComponent(lines.join('\r\n'));
   }
 
   form.addEventListener('submit', (e) => {
@@ -468,6 +525,7 @@
     descEl.style.display = desc ? 'block' : 'none';
 
     gcalBtn.href = buildGoogleCalendarUrl(currentEvent);
+    appleCalBtn.href = buildICSDataUrl(currentEvent);
     cardSection.style.display = 'block';
     cardSection.scrollIntoView({ behavior: 'smooth' });
   });
