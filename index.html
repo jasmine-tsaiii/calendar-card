@@ -562,7 +562,10 @@
       return;
     }
     if (!liff.isApiAvailable('shareTargetPicker')) {
-      liffHint.textContent = '目前這個環境不支援分享功能，請用手機的 LINE App 開啟這個頁面';
+      const os = liff.getOS ? liff.getOS() : '未知';
+      const ver = liff.getLineVersion ? liff.getLineVersion() : '未知';
+      const inClient = liff.isInClient ? liff.isInClient() : '未知';
+      liffHint.textContent = `目前這個環境不支援分享功能（系統：${os}／LINE版本：${ver}／在LINE內：${inClient}）`;
       return;
     }
     try {
