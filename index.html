@@ -531,7 +531,6 @@
 
     gcalBtn.href = buildGoogleCalendarUrl(currentEvent);
     appleCalBtn.href = buildICSBlobUrl(currentEvent);
-    appleCalBtn.setAttribute('download', `${title || 'event'}.ics`);
     cardSection.style.display = 'block';
     cardSection.scrollIntoView({ behavior: 'smooth' });
   });
