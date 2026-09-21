@@ -573,16 +573,20 @@
           type: 'box',
           layout: 'vertical',
           backgroundColor: '#1b1c26',
+          paddingAll: '8px',
           contents: [
+            { type: 'separator', color: '#33343f' },
             {
               type: 'button',
-              style: 'primary',
+              style: 'link',
+              height: 'sm',
               color: '#6f9a92',
               action: { type: 'uri', label: '加到 Google 行事曆', uri: gcalUrl }
             },
             {
               type: 'button',
-              style: 'secondary',
+              style: 'link',
+              height: 'sm',
               color: '#c9a769',
               action: { type: 'uri', label: '加到 Apple 行事曆', uri: icsUrl }
             }
