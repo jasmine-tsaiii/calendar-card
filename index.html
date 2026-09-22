@@ -300,13 +300,19 @@
         <input type="date" id="date" required>
       </div>
       <div class="field">
+        <label for="time">時間（留空＝整天；有填結束日期時會忽略）</label>
+        <input type="time" id="time">
+      </div>
+    </div>
+    <div class="row-two">
+      <div class="field">
         <label for="endDate">結束日期（跨天才填）</label>
         <input type="date" id="endDate">
       </div>
-    </div>
-    <div class="field">
-      <label for="time">時間（留空＝整天；有填結束日期時會忽略）</label>
-      <input type="time" id="time">
+      <div class="field">
+        <label for="endTime">結束時間（留空＝1小時）</label>
+        <input type="time" id="endTime">
+      </div>
     </div>
     <div class="field">
       <label for="location">地點</label>
@@ -408,13 +414,17 @@
     return `${y}/${m}/${d}`;
   }
 
-  function formatDateDisplay(dateStr, timeStr, endDateStr) {
+  function formatDateDisplay(dateStr, timeStr, endDateStr, endTimeStr) {
     if (endDateStr && endDateStr !== dateStr) {
       return `${formatSingleDate(dateStr)} － ${formatSingleDate(endDateStr)}`;
     }
     let out = formatSingleDate(dateStr);
-    if (timeStr) out += `　${timeStr}`;
-    else out += '（整天）';
+    if (timeStr) {
+      out += `　${timeStr}`;
+      if (endTimeStr) out += `－${endTimeStr}`;
+    } else {
+      out += '（整天）';
+    }
     return out;
   }
 
@@ -422,6 +432,17 @@
     const [y, m, d] = dateStr.split('-').map(Number);
     const dt = new Date(Date.UTC(y, m - 1, d + days));
     return `${dt.getUTCFullYear()}${pad(dt.getUTCMonth() + 1)}${pad(dt.getUTCDate())}`;
+  }
+
+  function computeTimedEnd(ev, startDate) {
+    if (ev.endTime) {
+      let end = new Date(`${ev.date}T${ev.endTime}:00`);
+      if (end.getTime() <= startDate.getTime()) {
+        end = new Date(end.getTime() + 24 * 60 * 60 * 1000); // 結束時間比開始早，視為隔天
+      }
+      return end;
+    }
+    return new Date(startDate.getTime() + 60 * 60 * 1000); // 預設 1 小時
   }
 
   function normalizeUrl(str) {
@@ -439,7 +460,7 @@
       dates = `${ev.date.replace(/-/g, '')}/${addDays(ev.endDate, 1)}`;
     } else if (ev.time) {
       const start = new Date(`${ev.date}T${ev.time}:00`);
-      const end = new Date(start.getTime() + 60 * 60 * 1000); // 預設 1 小時
+      const end = computeTimedEnd(ev, start);
       const fmt = (d) =>
         `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
       dates = `${fmt(start)}/${fmt(end)}`;
@@ -462,6 +483,7 @@
       params.set('enddate', ev.endDate);
     } else if (ev.time) {
       params.set('time', ev.time);
+      if (ev.endTime) params.set('endtime', ev.endTime);
     }
     if (ev.location) params.set('location', ev.location);
     if (ev.desc) params.set('desc', ev.desc);
@@ -475,14 +497,15 @@
     const date = document.getElementById('date').value;
     const endDate = document.getElementById('endDate').value;
     const time = document.getElementById('time').value;
+    const endTime = document.getElementById('endTime').value;
     const location = document.getElementById('location').value.trim();
     const desc = document.getElementById('desc').value.trim();
     const link = document.getElementById('link').value.trim();
 
-    currentEvent = { title, date, endDate, time, location, desc, link };
+    currentEvent = { title, date, endDate, time, endTime, location, desc, link };
 
     document.getElementById('outTitle').textContent = title;
-    document.getElementById('outDate').textContent = formatDateDisplay(date, time, endDate);
+    document.getElementById('outDate').textContent = formatDateDisplay(date, time, endDate, endTime);
 
     const locRow = document.getElementById('outLocationRow');
     if (location) {
@@ -529,7 +552,7 @@
         margin: 'lg',
         contents: [
           { type: 'text', text: '時間', color: '#6f9a92', size: 'xs', flex: 2 },
-          { type: 'text', text: formatDateDisplay(ev.date, ev.time, ev.endDate), color: '#f3efe3', size: 'sm', flex: 5, wrap: true }
+          { type: 'text', text: formatDateDisplay(ev.date, ev.time, ev.endDate, ev.endTime), color: '#f3efe3', size: 'sm', flex: 5, wrap: true }
         ]
       }
     ];
