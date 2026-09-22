@@ -12,7 +12,7 @@
   :root {
     --bg: #14151d;
     --surface: #1b1c26;
-    --line: rgba(243, 239, 227, 0.14);
+    --line: rgba(243, 239, 227, 0.1);
     --line-strong: rgba(243, 239, 227, 0.3);
     --text: #f3efe3;
     --text-dim: #9c9788;
@@ -79,53 +79,97 @@
     color: var(--text-dim);
     font-size: 12.5px;
     letter-spacing: 1px;
-    margin-bottom: 36px;
+    margin-bottom: 32px;
   }
-  .field {
-    margin-bottom: 18px;
-  }
-  label {
-    display: block;
-    font-size: 12px;
+
+  /* ---- Apple 風格分組表單 ---- */
+  .form-group-label {
+    font-size: 11px;
     letter-spacing: 2px;
     color: var(--text-dim);
-    margin-bottom: 8px;
     text-transform: uppercase;
+    margin: 22px 4px 8px;
   }
-  input[type="text"],
-  input[type="date"],
-  input[type="time"],
-  input[type="url"],
-  textarea {
-    width: 100%;
-    padding: 11px 4px;
-    border: none;
+  .form-group-label:first-of-type { margin-top: 0; }
+  .form-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .form-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 13px 16px;
     border-bottom: 1px solid var(--line);
+    gap: 12px;
+    min-height: 22px;
+  }
+  .form-row:last-child { border-bottom: none; }
+  .row-label {
+    font-size: 15px;
+    color: var(--text);
+    flex-shrink: 0;
+  }
+  .form-row input[type="text"],
+  .form-row textarea {
+    border: none;
     background: transparent;
     color: var(--text);
     font-family: "Noto Sans TC", sans-serif;
     font-size: 15px;
+    text-align: right;
     outline: none;
-    border-radius: 0;
-    resize: none;
+    width: 100%;
+    padding: 0;
   }
-  textarea { line-height: 1.6; }
-  input::placeholder, textarea::placeholder { color: #5e5c56; font-weight: 300; }
-  input:focus, textarea:focus { border-bottom-color: var(--gold); }
-  ::-webkit-calendar-picker-indicator { filter: invert(0.6) sepia(1) saturate(0) hue-rotate(0deg); opacity: 0.6; }
+  .form-row textarea { text-align: left; resize: none; }
+  .form-row input::placeholder, .form-row textarea::placeholder { color: #5e5c56; font-weight: 300; }
+  .form-row input[type="date"], .form-row input[type="time"] {
+    border: none;
+    background: transparent;
+    color: var(--gold);
+    font-family: "Noto Sans TC", sans-serif;
+    font-size: 15px;
+    outline: none;
+    text-align: right;
+    width: auto;
+    flex-shrink: 0;
+  }
+  ::-webkit-calendar-picker-indicator { filter: invert(0.75) sepia(1) saturate(3) hue-rotate(0deg); opacity: 0.85; }
 
-  .row-two {
+  .dt-group {
     display: flex;
-    gap: 20px;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-end;
   }
-  .row-two .field { flex: 1; }
 
-  .field-hint {
-    font-size: 11px;
-    color: #6b6862;
-    margin-top: 6px;
-    letter-spacing: 0.5px;
+  .switch {
+    position: relative;
+    width: 44px;
+    height: 26px;
+    flex-shrink: 0;
   }
+  .switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .switch .track {
+    position: absolute; inset: 0;
+    background: #3a3a42;
+    border-radius: 26px;
+    transition: background 0.2s;
+  }
+  .switch .thumb {
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 22px; height: 22px;
+    background: #f3efe3;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  }
+  .switch input:checked + .track { background: var(--teal); }
+  .switch input:checked + .track + .thumb { transform: translateX(18px); }
 
   button.primary {
     width: 100%;
@@ -137,7 +181,7 @@
     font-size: 14px;
     letter-spacing: 4px;
     cursor: pointer;
-    margin-top: 12px;
+    margin-top: 24px;
     transition: background 0.2s, color 0.2s;
   }
   button.primary:active { background: var(--gold); color: #14151d; }
@@ -290,42 +334,54 @@
   <p class="subtitle">填好事件，產生一張可分享到 LINE 的卡片</p>
 
   <form id="eventForm">
-    <div class="field">
-      <label for="title">標題</label>
-      <input type="text" id="title" placeholder="例如：週末爬山" required>
-    </div>
-    <div class="row-two">
-      <div class="field">
-        <label for="date">日期</label>
-        <input type="date" id="date" required>
-      </div>
-      <div class="field">
-        <label for="time">時間（留空＝整天；有填結束日期時會忽略）</label>
-        <input type="time" id="time">
+    <div class="form-group-label">內容</div>
+    <div class="form-card">
+      <div class="form-row">
+        <input type="text" id="title" placeholder="標題" required style="text-align:left; font-size:16px;">
       </div>
     </div>
-    <div class="row-two">
-      <div class="field">
-        <label for="endDate">結束日期（跨天才填）</label>
-        <input type="date" id="endDate">
+
+    <div class="form-group-label">時間</div>
+    <div class="form-card">
+      <div class="form-row">
+        <span class="row-label">整天</span>
+        <label class="switch">
+          <input type="checkbox" id="allDay">
+          <span class="track"></span>
+          <span class="thumb"></span>
+        </label>
       </div>
-      <div class="field">
-        <label for="endTime">結束時間（留空＝1小時）</label>
-        <input type="time" id="endTime">
+      <div class="form-row">
+        <span class="row-label">開始</span>
+        <span class="dt-group">
+          <input type="date" id="date" required>
+          <input type="time" id="time">
+        </span>
+      </div>
+      <div class="form-row">
+        <span class="row-label">結束</span>
+        <span class="dt-group">
+          <input type="date" id="endDate" required>
+          <input type="time" id="endTime">
+        </span>
       </div>
     </div>
-    <div class="field">
-      <label for="location">地點</label>
-      <input type="text" id="location" placeholder="例如：象山登山口">
+
+    <div class="form-group-label">詳細資訊</div>
+    <div class="form-card">
+      <div class="form-row">
+        <span class="row-label">地點</span>
+        <input type="text" id="location" placeholder="無">
+      </div>
+      <div class="form-row">
+        <textarea id="desc" rows="2" placeholder="文字說明"></textarea>
+      </div>
+      <div class="form-row">
+        <span class="row-label">連結</span>
+        <input type="text" id="link" placeholder="無">
+      </div>
     </div>
-    <div class="field">
-      <label for="desc">文字說明</label>
-      <textarea id="desc" rows="3" placeholder="想多說一點什麼都可以（可留空）"></textarea>
-    </div>
-    <div class="field">
-      <label for="link">連結</label>
-      <input type="text" id="link" placeholder="想附上連結的話貼在這裡（可留空）">
-    </div>
+
     <button type="submit" class="primary">產 生 卡 片</button>
   </form>
 
@@ -391,7 +447,7 @@
   resizeCanvas();
   requestAnimationFrame(drawStars);
 
-  // ---- 表單 → 卡片 ----
+  // ---- 表單欄位 ----
   const LIFF_ID = '2011682833-OITqCgj6';
 
   const form = document.getElementById('eventForm');
@@ -401,48 +457,73 @@
   const lineShareBtn = document.getElementById('lineShareBtn');
   const liffHint = document.getElementById('liffHint');
 
+  const allDayInput = document.getElementById('allDay');
+  const dateInput = document.getElementById('date');
+  const timeInput = document.getElementById('time');
+  const endDateInput = document.getElementById('endDate');
+  const endTimeInput = document.getElementById('endTime');
+
   let currentEvent = null;
 
   function pad(n) { return String(n).padStart(2, '0'); }
 
-  function isMultiDay(ev) {
-    return !!(ev.endDate && ev.endDate !== ev.date);
+  function todayStr() {
+    const d = new Date();
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   }
+
+  function addHoursToTime(timeStr, hours) {
+    const [h, m] = timeStr.split(':').map(Number);
+    const total = (h + hours) * 60 + m;
+    const wrapped = ((total % (24 * 60)) + 24 * 60) % (24 * 60);
+    return `${pad(Math.floor(wrapped / 60))}:${pad(wrapped % 60)}`;
+  }
+
+  // ---- 表單初始值 + 開始/結束連動 ----
+  dateInput.value = todayStr();
+  timeInput.value = '19:00';
+  endDateInput.value = dateInput.value;
+  endTimeInput.value = addHoursToTime(timeInput.value, 1);
+
+  let endDateTouched = false;
+  let endTimeTouched = false;
+  endDateInput.addEventListener('input', () => { endDateTouched = true; });
+  endTimeInput.addEventListener('input', () => { endTimeTouched = true; });
+
+  dateInput.addEventListener('input', () => {
+    if (!endDateTouched) endDateInput.value = dateInput.value;
+  });
+  timeInput.addEventListener('input', () => {
+    if (!endTimeTouched) endTimeInput.value = addHoursToTime(timeInput.value, 1);
+  });
+
+  function syncAllDay() {
+    const isAllDay = allDayInput.checked;
+    timeInput.style.display = isAllDay ? 'none' : 'inline-block';
+    endTimeInput.style.display = isAllDay ? 'none' : 'inline-block';
+  }
+  allDayInput.addEventListener('change', syncAllDay);
+  syncAllDay();
 
   function formatSingleDate(dateStr) {
     const [y, m, d] = dateStr.split('-');
     return `${y}/${m}/${d}`;
   }
 
-  function formatDateDisplay(dateStr, timeStr, endDateStr, endTimeStr) {
-    if (endDateStr && endDateStr !== dateStr) {
-      return `${formatSingleDate(dateStr)} － ${formatSingleDate(endDateStr)}`;
+  function formatDateDisplay(ev) {
+    const sameDay = ev.endDate === ev.date;
+    if (ev.allDay) {
+      if (sameDay) return `${formatSingleDate(ev.date)}（整天）`;
+      return `${formatSingleDate(ev.date)} － ${formatSingleDate(ev.endDate)}`;
     }
-    let out = formatSingleDate(dateStr);
-    if (timeStr) {
-      out += `　${timeStr}`;
-      if (endTimeStr) out += `－${endTimeStr}`;
-    } else {
-      out += '（整天）';
-    }
-    return out;
+    if (sameDay) return `${formatSingleDate(ev.date)}　${ev.time}－${ev.endTime}`;
+    return `${formatSingleDate(ev.date)} ${ev.time} － ${formatSingleDate(ev.endDate)} ${ev.endTime}`;
   }
 
   function addDays(dateStr, days) {
     const [y, m, d] = dateStr.split('-').map(Number);
     const dt = new Date(Date.UTC(y, m - 1, d + days));
     return `${dt.getUTCFullYear()}${pad(dt.getUTCMonth() + 1)}${pad(dt.getUTCDate())}`;
-  }
-
-  function computeTimedEnd(ev, startDate) {
-    if (ev.endTime) {
-      let end = new Date(`${ev.date}T${ev.endTime}:00`);
-      if (end.getTime() <= startDate.getTime()) {
-        end = new Date(end.getTime() + 24 * 60 * 60 * 1000); // 結束時間比開始早，視為隔天
-      }
-      return end;
-    }
-    return new Date(startDate.getTime() + 60 * 60 * 1000); // 預設 1 小時
   }
 
   function normalizeUrl(str) {
@@ -456,19 +537,11 @@
     const loc = encodeURIComponent(ev.location || '');
     const details = encodeURIComponent(ev.desc || '');
     let dates;
-    if (isMultiDay(ev)) {
+    if (ev.allDay) {
       dates = `${ev.date.replace(/-/g, '')}/${addDays(ev.endDate, 1)}`;
-    } else if (ev.time) {
-      const start = new Date(`${ev.date}T${ev.time}:00`);
-      const end = computeTimedEnd(ev, start);
-      const fmt = (d) =>
-        `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
-      dates = `${fmt(start)}/${fmt(end)}`;
     } else {
-      const start = new Date(`${ev.date}T00:00:00`);
-      const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
-      const fmtDay = (d) => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
-      dates = `${fmtDay(start)}/${fmtDay(end)}`;
+      const fmt = (dateStr, timeStr) => `${dateStr.replace(/-/g, '')}T${timeStr.replace(':', '')}00`;
+      dates = `${fmt(ev.date, ev.time)}/${fmt(ev.endDate, ev.endTime)}`;
     }
     return `${base}&text=${text}&dates=${dates}&location=${loc}&details=${details}`;
   }
@@ -479,11 +552,10 @@
     const params = new URLSearchParams();
     params.set('title', ev.title);
     params.set('date', ev.date);
-    if (isMultiDay(ev)) {
-      params.set('enddate', ev.endDate);
-    } else if (ev.time) {
+    params.set('enddate', ev.endDate);
+    if (!ev.allDay) {
       params.set('time', ev.time);
-      if (ev.endTime) params.set('endtime', ev.endTime);
+      params.set('endtime', ev.endTime);
     }
     if (ev.location) params.set('location', ev.location);
     if (ev.desc) params.set('desc', ev.desc);
@@ -494,18 +566,19 @@
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const title = document.getElementById('title').value.trim();
-    const date = document.getElementById('date').value;
-    const endDate = document.getElementById('endDate').value;
-    const time = document.getElementById('time').value;
-    const endTime = document.getElementById('endTime').value;
+    const allDay = allDayInput.checked;
+    const date = dateInput.value;
+    const time = timeInput.value;
+    const endDate = endDateInput.value;
+    const endTime = endTimeInput.value;
     const location = document.getElementById('location').value.trim();
     const desc = document.getElementById('desc').value.trim();
     const link = document.getElementById('link').value.trim();
 
-    currentEvent = { title, date, endDate, time, endTime, location, desc, link };
+    currentEvent = { title, allDay, date, time, endDate, endTime, location, desc, link };
 
     document.getElementById('outTitle').textContent = title;
-    document.getElementById('outDate').textContent = formatDateDisplay(date, time, endDate, endTime);
+    document.getElementById('outDate').textContent = formatDateDisplay(currentEvent);
 
     const locRow = document.getElementById('outLocationRow');
     if (location) {
@@ -552,7 +625,7 @@
         margin: 'lg',
         contents: [
           { type: 'text', text: '時間', color: '#6f9a92', size: 'xs', flex: 2 },
-          { type: 'text', text: formatDateDisplay(ev.date, ev.time, ev.endDate, ev.endTime), color: '#f3efe3', size: 'sm', flex: 5, wrap: true }
+          { type: 'text', text: formatDateDisplay(ev), color: '#f3efe3', size: 'sm', flex: 5, wrap: true }
         ]
       }
     ];
