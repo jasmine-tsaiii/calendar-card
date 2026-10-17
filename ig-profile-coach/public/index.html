@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IG 主頁健檢</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f4f0;
+    --surface: #ffffff;
+    --text: #1f1d1a;
+    --muted: #6b665e;
+    --line: #e4dfd6;
+    --accent: #c2410c;
+    --accent-soft: #fdeee4;
+    --good: #15803d;
+    --warn: #b45309;
+    --bad: #b91c1c;
+    --warn-soft: #fef3c7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #15140f;
+      --surface: #1f1d18;
+      --text: #f1ede6;
+      --muted: #a39d92;
+      --line: #36322a;
+      --accent: #fb923c;
+      --accent-soft: #3a2416;
+      --good: #4ade80;
+      --warn: #fbbf24;
+      --bad: #f87171;
+      --warn-soft: #3a2f12;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Noto Sans TC", system-ui, sans-serif;
+    line-height: 1.7;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 80px; }
+  h1 { font-size: 1.7rem; margin: 0 0 4px; }
+  h2 { font-size: 1.15rem; margin: 0 0 12px; }
+  h3 { font-size: 1rem; margin: 0 0 6px; }
+  .lead { color: var(--muted); margin: 0 0 24px; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  label { display: block; font-weight: 500; margin-bottom: 6px; }
+  input[type="text"], textarea {
+    width: 100%;
+    font: inherit;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  textarea { min-height: 90px; resize: vertical; }
+  .row { display: flex; gap: 8px; }
+  .row input { flex: 1; }
+  button {
+    font: inherit;
+    font-weight: 500;
+    border: 0;
+    border-radius: 10px;
+    padding: 10px 18px;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  button.secondary { background: var(--accent-soft); color: var(--accent); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  .check { display: flex; gap: 8px; align-items: flex-start; font-weight: 400; color: var(--muted); font-size: .9rem; margin-top: 12px; }
+  .check input { margin-top: 6px; }
+  .hint { color: var(--muted); font-size: .88rem; margin: 6px 0 0; }
+  .error { color: var(--bad); margin-top: 10px; }
+  .hidden { display: none !important; }
+  .profile { display: flex; gap: 14px; align-items: center; }
+  .profile img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 1px solid var(--line); }
+  .bio { white-space: pre-wrap; background: var(--bg); border-radius: 10px; padding: 10px 12px; margin-top: 12px; font-size: .95rem; }
+  .stats { color: var(--muted); font-size: .9rem; }
+  .thumbs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 12px; }
+  .thumbs img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px; }
+  .score { padding: 12px 0; border-top: 1px solid var(--line); }
+  .score:first-of-type { border-top: 0; padding-top: 0; }
+  .score-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .bar { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; margin: 6px 0; }
+  .bar span { display: block; height: 100%; border-radius: 99px; }
+  .score p { margin: 4px 0; font-size: .93rem; }
+  .score .evidence { color: var(--muted); }
+  ul { padding-left: 20px; margin: 0; }
+  .flag { background: var(--warn-soft); border-radius: 10px; padding: 12px; margin-top: 10px; font-size: .93rem; }
+  .flag p { margin: 2px 0; }
+  .directions { display: grid; gap: 12px; }
+  .direction { border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .direction .positioning { color: var(--muted); font-size: .92rem; margin: 0 0 8px; }
+  .direction .bio { position: relative; }
+  .copy { position: absolute; top: 8px; right: 8px; padding: 4px 10px; font-size: .8rem; }
+  .meta { font-size: .9rem; margin-top: 8px; }
+  .question { margin-bottom: 12px; }
+  .question textarea { min-height: 60px; }
+  .loading { display: flex; gap: 10px; align-items: center; color: var(--muted); }
+  .spinner { width: 18px; height: 18px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .disclaimer { color: var(--muted); font-size: .82rem; }
+  @media (max-width: 520px) { .row { flex-direction: column; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>IG 主頁健檢</h1>
+  <p class="lead">貼上 Instagram 公開連結，幫你檢查服務說得清不清楚、有沒有個人特色、文字好不好讀，並給你 3 個改寫方向。</p>
+
+  <!-- 步驟 1：貼連結 -->
+  <section class="card">
+    <label for="url">IG 個人首頁連結</label>
+    <div class="row">
+      <input id="url" type="text" placeholder="https://www.instagram.com/你的帳號" autocomplete="off">
+      <button id="fetchBtn">讀取帳號</button>
+    </div>
+    <label class="check"><input id="consent" type="checkbox">我是此帳號本人，或已取得帳號擁有者同意進行分析。</label>
+    <p id="fetchError" class="error hidden"></p>
+  </section>
+
+  <!-- 讀到的帳號資料 -->
+  <section id="profileCard" class="card hidden"></section>
+
+  <!-- 讀不到時的備案：截圖／貼簡介 -->
+  <section id="fallbackCard" class="card hidden">
+    <h2>改用截圖分析</h2>
+    <p class="hint" id="fallbackReason"></p>
+    <label for="shots" style="margin-top:12px">上傳主頁截圖（最多 5 張，含簡介、精選動態、九宮格）</label>
+    <input id="shots" type="file" accept="image/png,image/jpeg,image/webp" multiple>
+    <p class="hint" id="shotCount"></p>
+  </section>
+
+  <!-- 步驟 2：補充資訊 -->
+  <section id="extraCard" class="card hidden">
+    <label for="extra">補充資訊（選填，但填越多建議越準）</label>
+    <textarea id="extra" placeholder="例如：我是台中的接案攝影師，主要拍婚紗與孕婦寫真，希望新人私訊詢價，價格帶 2–4 萬。"></textarea>
+    <div style="margin-top:12px"><button id="analyzeBtn">開始健檢</button></div>
+    <p id="analyzeError" class="error hidden"></p>
+  </section>
+
+  <section id="loadingCard" class="card hidden">
+    <div class="loading"><div class="spinner"></div>AI 正在看你的主頁，大約需要 30–90 秒…</div>
+  </section>
+
+  <!-- 結果 -->
+  <div id="report"></div>
+
+  <p class="disclaimer">本工具只在你貼上連結時，透過 Meta 官方 API 讀取該帳號的公開資料，不會儲存帳號內容或截圖。法規提醒僅供參考，不構成法律意見。</p>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const state = { profile: null, screenshots: [], report: null };
+
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const show = (el, on = true) => el.classList.toggle("hidden", !on);
+const scoreColor = (n) => (n >= 4 ? "var(--good)" : n >= 3 ? "var(--warn)" : "var(--bad)");
+
+function setError(el, msg) {
+  el.textContent = msg ?? "";
+  show(el, !!msg);
+}
+
+async function postJSON(url, body) {
+  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const data = await res.json().catch(() => ({}));
+  return { ok: res.ok, data };
+}
+
+$("fetchBtn").addEventListener("click", async () => {
+  setError($("fetchError"));
+  if (!$("consent").checked) return setError($("fetchError"), "請先勾選同意，確認你有權分析這個帳號。");
+  const url = $("url").value.trim();
+  if (!url) return setError($("fetchError"), "請貼上 IG 連結。");
+
+  $("fetchBtn").disabled = true;
+  $("fetchBtn").textContent = "讀取中…";
+  state.profile = null;
+  $("report").innerHTML = "";
+  const { ok, data } = await postJSON("/api/profile", { url });
+  $("fetchBtn").disabled = false;
+  $("fetchBtn").textContent = "讀取帳號";
+
+  if (ok) {
+    state.profile = data.profile;
+    renderProfile(data.profile);
+    show($("fallbackCard"), false);
+  } else if (data.fallback) {
+    show($("profileCard"), false);
+    $("fallbackReason").textContent = data.error;
+    show($("fallbackCard"));
+  } else {
+    return setError($("fetchError"), data.error ?? "讀取失敗");
+  }
+  show($("extraCard"));
+});
+
+function renderProfile(p) {
+  const avatar = p.images?.[0] ? `<img src="data:${p.images[0].mediaType};base64,${p.images[0].data}" alt="">` : "";
+  const thumbs = (p.images ?? []).slice(1).map((img) => `<img src="data:${img.mediaType};base64,${img.data}" alt="">`).join("");
+  $("profileCard").innerHTML = `
+    <div class="profile">${avatar}
+      <div><h2 style="margin:0">${esc(p.name || p.username)}</h2>
+        <div class="stats">@${esc(p.username)}　粉絲 ${p.followers ?? "?"}　貼文 ${p.mediaCount ?? "?"}</div></div>
+    </div>
+    <div class="bio">${esc(p.biography) || "（簡介空白）"}${p.website ? `\n🔗 ${esc(p.website)}` : ""}</div>
+    ${thumbs ? `<div class="thumbs">${thumbs}</div>` : ""}
+    <p class="hint">讀取成功！可以在下方補充資訊後開始健檢。</p>`;
+  show($("profileCard"));
+}
+
+$("shots").addEventListener("change", async (e) => {
+  const files = [...e.target.files].slice(0, 5);
+  state.screenshots = await Promise.all(files.map(readAsDataUrl));
+  $("shotCount").textContent = files.length ? `已選擇 ${files.length} 張截圖` : "";
+});
+
+function readAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
+$("analyzeBtn").addEventListener("click", () => runAnalysis([]));
+
+async function runAnalysis(answers) {
+  setError($("analyzeError"));
+  if (!state.profile && !state.screenshots.length) {
+    return setError($("analyzeError"), "請上傳至少一張主頁截圖，AI 才看得到你的主頁。");
+  }
+  show($("loadingCard"));
+  $("analyzeBtn").disabled = true;
+  const { ok, data } = await postJSON("/api/analyze", {
+    profile: state.profile,
+    screenshots: state.screenshots,
+    extraInfo: $("extra").value,
+    answers,
+  });
+  show($("loadingCard"), false);
+  $("analyzeBtn").disabled = false;
+  if (!ok) return setError($("analyzeError"), data.error ?? "分析失敗，請再試一次。");
+  state.report = data.report;
+  renderReport(data.report);
+  $("report").scrollIntoView({ behavior: "smooth" });
+}
+
+function renderReport(r) {
+  const avg = r.scores.length ? (r.scores.reduce((s, x) => s + x.score, 0) / r.scores.length).toFixed(1) : "-";
+  const scores = r.scores.map((s) => `
+    <div class="score">
+      <div class="score-head"><h3>${esc(s.label)}</h3><strong style="color:${scoreColor(s.score)}">${s.score} / 5</strong></div>
+      <div class="bar"><span style="width:${s.score * 20}%;background:${scoreColor(s.score)}"></span></div>
+      <p>${esc(s.reason)}</p>
+      <p class="evidence">觀察：${esc(s.evidence)}</p>
+      <p>👉 ${esc(s.how_to_improve)}</p>
+    </div>`).join("");
+
+  const flags = r.compliance_flags.length
+    ? r.compliance_flags.map((f) => `
+      <div class="flag">
+        <p><strong>原文：</strong>${esc(f.original)}</p>
+        <p><strong>可能涉及：</strong>${esc(f.law)}</p>
+        <p>${esc(f.risk)}</p>
+        <p><strong>建議改成：</strong>${esc(f.safer_wording)}</p>
+      </div>`).join("")
+    : `<p class="hint">目前沒有發現明顯的廣告法規風險。</p>`;
+
+  const questions = r.questions.length ? `
+    <section class="card">
+      <h2>想讓建議更準，請回答這幾題</h2>
+      ${r.questions.map((q, i) => `
+        <div class="question"><label for="q${i}">${esc(q)}</label><textarea id="q${i}" data-q="${esc(q)}"></textarea></div>`).join("")}
+      <button id="refineBtn">依我的回答重新產生建議</button>
+    </section>` : "";
+
+  const directions = r.directions.map((d, i) => `
+    <div class="direction">
+      <h3>方向 ${i + 1}：${esc(d.title)}</h3>
+      <p class="positioning">${esc(d.positioning)}</p>
+      <div class="meta"><strong>名稱欄位：</strong>${esc(d.name_field)}</div>
+      <div class="bio">${esc(d.bio)}<button class="secondary copy" data-copy="${i}">複製</button></div>
+      <div class="meta"><strong>精選動態：</strong>${d.highlights.map(esc).join("、")}</div>
+      <div class="meta"><strong>貼文企劃：</strong><ul>${d.post_ideas.map((p) => `<li>${esc(p)}</li>`).join("")}</ul></div>
+    </div>`).join("");
+
+  $("report").innerHTML = `
+    <section class="card">
+      <h2>整體診斷　<span style="color:var(--accent)">平均 ${avg} 分</span></h2>
+      <p>${esc(r.summary)}</p>
+      <p class="hint"><strong>陌生人 3 秒印象：</strong>${esc(r.first_impression)}</p>
+    </section>
+    <section class="card"><h2>各面向評分</h2>${scores}</section>
+    <section class="card"><h2>今天就能改的事</h2><ul>${r.quick_fixes.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></section>
+    <section class="card"><h2>⚠️ 法規風險提醒</h2>${flags}</section>
+    ${questions}
+    <section class="card"><h2>3 個改寫方向</h2><div class="directions">${directions}</div></section>`;
+
+  document.querySelectorAll("[data-copy]").forEach((btn) =>
+    btn.addEventListener("click", async () => {
+      await navigator.clipboard.writeText(r.directions[btn.dataset.copy].bio);
+      btn.textContent = "已複製";
+      setTimeout(() => (btn.textContent = "複製"), 1500);
+    }),
+  );
+  $("refineBtn")?.addEventListener("click", () => {
+    const answers = [...document.querySelectorAll("[data-q]")].map((t) => ({ question: t.dataset.q, answer: t.value }));
+    if (!answers.some((a) => a.answer.trim())) return alert("請至少回答一題。");
+    runAnalysis(answers);
+  });
+}
+</script>
+</body>
+</html>
